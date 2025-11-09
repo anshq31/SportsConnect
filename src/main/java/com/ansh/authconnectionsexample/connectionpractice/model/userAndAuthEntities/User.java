@@ -1,7 +1,6 @@
 package com.ansh.authconnectionsexample.connectionpractice.model.userAndAuthEntities;
 
 import com.ansh.authconnectionsexample.connectionpractice.model.gigAndReviewEnitities.Review;
-import com.ansh.authconnectionsexample.connectionpractice.model.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -47,6 +46,4 @@ public class User {
     @OneToMany(mappedBy = "participant",cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Review> reviewsReceived;
 
-    @Enumerated(EnumType.STRING)
-    private Role role;
 }

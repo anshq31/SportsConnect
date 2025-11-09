@@ -5,7 +5,6 @@ import com.ansh.authconnectionsexample.connectionpractice.dto.AuthResponse;
 import com.ansh.authconnectionsexample.connectionpractice.dto.LoginRequest;
 import com.ansh.authconnectionsexample.connectionpractice.dto.RefreshRequest;
 import com.ansh.authconnectionsexample.connectionpractice.model.userAndAuthEntities.RefreshToken;
-import com.ansh.authconnectionsexample.connectionpractice.model.enums.Role;
 import com.ansh.authconnectionsexample.connectionpractice.model.userAndAuthEntities.User;
 import com.ansh.authconnectionsexample.connectionpractice.repository.UserRepository;
 import com.ansh.authconnectionsexample.connectionpractice.security.JwtService;
