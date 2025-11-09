@@ -86,7 +86,7 @@ public class GigService {
     }
 
     @Transactional(readOnly = true)
-    public List<GigRequestDto> getGigRequestForMyGig(){
+    public List<GigRequestDto> getGigRequestsForMyGig(){
         User user = getAuthenticatedUser();
         Gig gig = gigRepository.findByGigMasterAndStatusIn(user,List.of(GigStatus.ACTIVE,GigStatus.FULL))
                 .orElseThrow(()->new RuntimeException("User doest not have an active gig"));
@@ -153,7 +153,6 @@ public class GigService {
         if (!gig.getGigMaster().equals(gigMaster)){
             throw new RuntimeException("User is not authorized to delete the gig");
         }
-
         chatService.deleteChatGroupForGig(gig);
         gigRepository.delete(gig);
     }

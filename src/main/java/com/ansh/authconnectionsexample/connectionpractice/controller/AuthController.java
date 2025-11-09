@@ -5,6 +5,7 @@ import com.ansh.authconnectionsexample.connectionpractice.dto.AuthResponse;
 import com.ansh.authconnectionsexample.connectionpractice.dto.LoginRequest;
 import com.ansh.authconnectionsexample.connectionpractice.dto.RefreshRequest;
 import com.ansh.authconnectionsexample.connectionpractice.service.AuthService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,13 +26,13 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request){
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request){
         AuthResponse response = authService.login(request);
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<AuthResponse> refresh(@RequestBody RefreshRequest request){
+    public ResponseEntity<AuthResponse> refresh(@Valid @RequestBody RefreshRequest request){
         AuthResponse response = authService.refreshToken(request);
         return ResponseEntity.ok(response);
     }
