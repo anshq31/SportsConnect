@@ -4,6 +4,7 @@ import com.ansh.authconnectionsexample.connectionpractice.model.gigAndReviewEnit
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Set;
 
@@ -33,7 +34,7 @@ public class User {
     private String experience;
 
     @Column(precision = 3, scale = 2, columnDefinition = "DECIMAL(3,2) DEFAULT 0.00")
-    private Double overallRating = 0.0;
+    private BigDecimal overallRating = BigDecimal.valueOf(0.0);
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(

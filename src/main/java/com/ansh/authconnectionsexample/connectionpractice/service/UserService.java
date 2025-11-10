@@ -14,6 +14,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -65,10 +66,11 @@ public class UserService {
                 .orElseThrow(()-> new RuntimeException("User not found with this id"+ userId));
         Double averageRating = reviewRepository.calculateAverageRating(userId);
         if (averageRating == null) {
-            averageRating = 0.0;
+            user.setOverallRating(BigDecimal.ZERO);
+        }else{
+            user.setOverallRating(BigDecimal.valueOf(averageRating));
         }
 
-        user.setOverallRating(averageRating);
         userRepository.save(user);
     }
 
