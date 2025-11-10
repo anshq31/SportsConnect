@@ -6,6 +6,7 @@ import com.ansh.authconnectionsexample.connectionpractice.dto.LoginRequest;
 import com.ansh.authconnectionsexample.connectionpractice.dto.RefreshRequest;
 import com.ansh.authconnectionsexample.connectionpractice.model.userAndAuthEntities.RefreshToken;
 import com.ansh.authconnectionsexample.connectionpractice.model.userAndAuthEntities.User;
+import com.ansh.authconnectionsexample.connectionpractice.repository.RefreshTokenRepository;
 import com.ansh.authconnectionsexample.connectionpractice.repository.UserRepository;
 import com.ansh.authconnectionsexample.connectionpractice.security.JwtService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +29,9 @@ public class AuthService {
     private RefreshTokenService refreshTokenService;
     @Autowired
     private AuthenticationManager authenticationManager;
+
+    @Autowired
+    private RefreshTokenRepository refreshTokenRepository;
 
     public AuthResponse register(AuthRequest authRequest){
         if (userRepository.existsByUsername(authRequest.getUsername())){
@@ -84,13 +88,13 @@ public class AuthService {
         RefreshToken savedToken = optional.get();
 
         if (refreshTokenService.isExpired(savedToken)){
-            refreshTokenService.deleteByUser(savedToken.getUser());
-            throw new RuntimeException("refresh token expired. Please login again ");
+            refreshTokenRepository.delete(savedToken);
+            throw new RuntimeException("Refresh token expired. Please login again ");
         }
 
         String newAccessToken = jwtService.generateAccessToken(savedToken.getUser().getUsername());
 
-        refreshTokenService.deleteByUser(savedToken.getUser());
+//        refreshTokenService.deleteByUser(savedToken.getUser());
         RefreshToken newRefreshToken = refreshTokenService.createRefreshToken(savedToken.getUser());
 
         return AuthResponse.builder()
@@ -99,7 +103,7 @@ public class AuthService {
                 .build();
     }
 
-    public void logout(String username){
-        userRepository.findByUsername(username).ifPresent(refreshTokenService::deleteByUser);
-    }
+//    public void logout(String username){
+//        userRepository.findByUsername(username).ifPresent(refreshTokenService::deleteByUser);
+//    }
 }

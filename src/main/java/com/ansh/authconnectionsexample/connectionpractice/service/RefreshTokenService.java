@@ -7,6 +7,7 @@ import com.ansh.authconnectionsexample.connectionpractice.repository.UserReposit
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.Optional;
@@ -23,13 +24,26 @@ public class RefreshTokenService {
     @Value("${jwt.refresh.expiration-ms}")
     private Long refreshTokenDurationMs;
 
+    @Transactional
     public RefreshToken createRefreshToken(User user){
-        RefreshToken refreshToken = RefreshToken.builder()
-                .user(user)
-                .token(UUID.randomUUID().toString())
-                .expiryDate(Instant.now().plusMillis(refreshTokenDurationMs))
-                .build();
-        return refreshTokenRepository.save(refreshToken);
+
+        Optional<RefreshToken> existingTokenOpt = refreshTokenRepository.findByUser(user);
+
+        RefreshToken tokenToSave;
+
+        if (existingTokenOpt.isPresent()){
+            tokenToSave = existingTokenOpt.get();
+            tokenToSave.setToken(UUID.randomUUID().toString());
+            tokenToSave.setExpiryDate(Instant.now().plusMillis(refreshTokenDurationMs));
+        }else {
+            tokenToSave = RefreshToken.builder()
+                    .user(user)
+                    .token(UUID.randomUUID().toString())
+                    .expiryDate(Instant.now().plusMillis(refreshTokenDurationMs))
+                    .build();
+        }
+
+        return refreshTokenRepository.save(tokenToSave);
     }
 
     public Optional<RefreshToken> findByToken(String token){
@@ -40,7 +54,7 @@ public class RefreshTokenService {
         return token.getExpiryDate().isBefore(Instant.now());
     }
 
-    public void deleteByUser(User user){
-        refreshTokenRepository.deleteByUser(user);
-    }
+//    public void deleteByUser(User user){
+//        refreshTokenRepository.deleteByUser(user);
+//    }
 }
