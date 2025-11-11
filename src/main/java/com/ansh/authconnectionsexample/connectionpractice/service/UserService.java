@@ -36,6 +36,7 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public UserProfileDto getMyProfile(){
+        System.out.println(getAuthenticatedUser());
         return mapToUserProfileDto(getAuthenticatedUser());
     }
 

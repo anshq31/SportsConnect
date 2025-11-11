@@ -10,6 +10,8 @@ import java.util.Set;
 
 @Entity
 @Table(name = "users")
+@ToString(exclude = {"skills","reviewsReceived"})
+@EqualsAndHashCode(exclude = {"skills","reviewsReceived"})
 @Getter
 @Setter
 @NoArgsConstructor

@@ -1,11 +1,16 @@
 package com.ansh.authconnectionsexample.connectionpractice.model.userAndAuthEntities;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.*;
 
 import java.util.Set;
 
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@ToString(exclude = "users")
+@EqualsAndHashCode(exclude = "users")
 @Entity
 @Table(name = "skills")
 public class Skill {

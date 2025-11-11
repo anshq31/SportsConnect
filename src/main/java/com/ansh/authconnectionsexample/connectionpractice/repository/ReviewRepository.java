@@ -1,10 +1,12 @@
 package com.ansh.authconnectionsexample.connectionpractice.repository;
 
+import com.ansh.authconnectionsexample.connectionpractice.model.gigAndReviewEnitities.Gig;
 import com.ansh.authconnectionsexample.connectionpractice.model.gigAndReviewEnitities.Review;
 import com.ansh.authconnectionsexample.connectionpractice.model.userAndAuthEntities.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -14,4 +16,6 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 
     @Query("SELECT AVG(r.rating) FROM Review r WHERE r.participant.id = :participantId")
     Double calculateAverageRating(Long participantId);
+    @Transactional
+    void deleteByGig(Gig gig);
 }

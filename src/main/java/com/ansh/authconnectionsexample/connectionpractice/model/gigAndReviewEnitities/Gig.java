@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Set;
 
 
@@ -48,7 +49,7 @@ public class Gig {
             joinColumns = @JoinColumn(name = "gig_id"),
             inverseJoinColumns = @JoinColumn(name = "user_id")
     )
-    private Set<User> acceptedParticipants;
+    private Set<User> acceptedParticipants = new HashSet<>();
 
     @PrePersist
     protected void OnCreate(){

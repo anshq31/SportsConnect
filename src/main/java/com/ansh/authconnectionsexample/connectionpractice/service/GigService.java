@@ -10,6 +10,7 @@ import com.ansh.authconnectionsexample.connectionpractice.model.gigAndReviewEnit
 import com.ansh.authconnectionsexample.connectionpractice.model.userAndAuthEntities.User;
 import com.ansh.authconnectionsexample.connectionpractice.repository.GigRepository;
 import com.ansh.authconnectionsexample.connectionpractice.repository.GigRequestRepository;
+import com.ansh.authconnectionsexample.connectionpractice.repository.ReviewRepository;
 import com.ansh.authconnectionsexample.connectionpractice.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -35,6 +36,9 @@ public class GigService {
 
     @Autowired
     private ChatService chatService;
+
+    @Autowired
+    private ReviewRepository reviewRepository;
 
     private User getAuthenticatedUser(){
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -139,7 +143,7 @@ public class GigService {
         if (!gig.getGigMaster().equals(gigMaster)){
             throw new RuntimeException("User is not authorized to complete the gig");
         }
-        gig.setStatus(GigStatus.ACTIVE);
+        gig.setStatus(GigStatus.COMPLETED);
         Gig completeGig = gigRepository.save(gig);
 
         chatService.deleteChatGroupForGig(gig);
@@ -153,6 +157,9 @@ public class GigService {
         if (!gig.getGigMaster().equals(gigMaster)){
             throw new RuntimeException("User is not authorized to delete the gig");
         }
+
+        gigRequestRepository.deleteByGig(gig);
+        reviewRepository.deleteByGig(gig);
         chatService.deleteChatGroupForGig(gig);
         gigRepository.delete(gig);
     }
