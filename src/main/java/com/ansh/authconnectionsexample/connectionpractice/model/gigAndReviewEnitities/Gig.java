@@ -10,7 +10,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 
-@Data
 @Entity
 @Table(name = "gigs")
 @Getter
@@ -49,6 +48,7 @@ public class Gig {
             joinColumns = @JoinColumn(name = "gig_id"),
             inverseJoinColumns = @JoinColumn(name = "user_id")
     )
+    @Builder.Default
     private Set<User> acceptedParticipants = new HashSet<>();
 
     @PrePersist

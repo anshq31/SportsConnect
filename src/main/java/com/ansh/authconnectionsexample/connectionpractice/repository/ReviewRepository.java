@@ -18,4 +18,6 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     Double calculateAverageRating(Long participantId);
     @Transactional
     void deleteByGig(Gig gig);
+
+    boolean existsByGigAndParticipant(Gig gig, User participant);
 }
