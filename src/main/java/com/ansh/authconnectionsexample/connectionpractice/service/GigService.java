@@ -15,6 +15,7 @@ import com.ansh.authconnectionsexample.connectionpractice.repository.UserReposit
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -69,8 +70,19 @@ public class GigService {
     }
 
     @Transactional(readOnly = true)
-    public Page<GigDto> getAllActiveGigs(Pageable pageable){
-        Page<Gig> gigPage = gigRepository.findByStatus(GigStatus.ACTIVE,pageable);
+    public Page<GigDto> getAllActiveGigs(String sport, String location,Pageable pageable){
+        Specification<Gig> spec = Specification.where(GigSpecificationService.hasStatus(GigStatus.ACTIVE));
+
+        if (sport != null && !sport.isEmpty()) {
+            spec = spec.and(GigSpecificationService.hasSport(sport));
+        }
+
+        if (location != null && !location.isEmpty()){
+            spec = spec.and(GigSpecificationService.hasLocation(location));
+        }
+
+        Page<Gig> gigPage = gigRepository.findAll(spec,pageable);
+
         return gigPage.map(this::mapToGigDto);
     }
 
@@ -91,13 +103,13 @@ public class GigService {
     }
 
     @Transactional(readOnly = true)
-    public List<GigRequestDto> getGigRequestsForMyGig(){
+    public Page<GigRequestDto> getGigRequestsForMyGig(Pageable pageable){
         User user = getAuthenticatedUser();
         Gig gig = gigRepository.findByGigMasterAndStatusIn(user,List.of(GigStatus.ACTIVE,GigStatus.FULL))
                 .orElseThrow(()->new RuntimeException("User doest not have an active gig"));
 
-        List<GigRequest> requests = gigRequestRepository.findByGigAndStatus(gig,RequestStatus.PENDING);
-        return requests.stream().map(this::mapToGigRequestDto).collect(Collectors.toList());
+        Page<GigRequest> requestPage = gigRequestRepository.findByGigAndStatus(gig,RequestStatus.PENDING,pageable);
+        return requestPage.map(this::mapToGigRequestDto);
     }
 
     public void acceptGigRequest(Long requestId){

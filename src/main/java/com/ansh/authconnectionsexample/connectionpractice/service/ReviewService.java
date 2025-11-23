@@ -10,6 +10,8 @@ import com.ansh.authconnectionsexample.connectionpractice.repository.GigReposito
 import com.ansh.authconnectionsexample.connectionpractice.repository.ReviewRepository;
 import com.ansh.authconnectionsexample.connectionpractice.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -74,6 +76,16 @@ public class ReviewService {
 
         return mapToReviewDto(savedReview);
 
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ReviewDto> getReviewsForUser(Long participantId, Pageable pageable){
+        User participant = userRepository.findById(participantId)
+                .orElseThrow(()-> new UsernameNotFoundException("Cannot find participant with id"+participantId));
+
+        Page<Review> reviewPage = reviewRepository.findByParticipant(participant,pageable);
+
+        return reviewPage.map(this::mapToReviewDto);
     }
 
     public ReviewDto mapToReviewDto(Review review){

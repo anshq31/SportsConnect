@@ -9,6 +9,8 @@ import com.ansh.authconnectionsexample.connectionpractice.repository.ChatGroupRe
 import com.ansh.authconnectionsexample.connectionpractice.repository.ChatMessageRepository;
 import com.ansh.authconnectionsexample.connectionpractice.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -60,14 +62,12 @@ public class ChatService {
     }
 
     @Transactional(readOnly = true)
-    public List<ChatMessageDto> getChatHistory(Long groupId){
+    public Page<ChatMessageDto> getChatHistory(Long groupId, Pageable pageable){
       ChatGroup group = chatGroupRepository.findById(groupId)
               .orElseThrow(()->new RuntimeException("Chat group not found"));
 
-      List<ChatMessage> messages = chatMessageRepository.findByGroup(group);
-      return messages.stream()
-              .map(this::mapToChatMessageDto)
-              .collect(Collectors.toList());
+      Page<ChatMessage> messages = chatMessageRepository.findByGroup(group,pageable);
+      return messages.map(this::mapToChatMessageDto);
     }
 
     public void deleteChatGroupForGig(Gig gig){

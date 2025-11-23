@@ -84,7 +84,7 @@ public class UserService {
                .experience(user.getExperience())
                .overallRating(user.getOverallRating())
                .skill(user.getSkills().stream().map(Skill::getName).collect(Collectors.toSet()))
-               .reviewsReceived(user.getReviewsReceived().stream().map(this::mapToReviewDto).collect(Collectors.toList()))
+//               .reviewsReceived(user.getReviewsReceived().stream().map(this::mapToReviewDto).collect(Collectors.toList()))
                .build();
    }
 

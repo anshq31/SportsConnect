@@ -1,8 +1,11 @@
 package com.ansh.authconnectionsexample.connectionpractice.repository;
 
+import com.ansh.authconnectionsexample.connectionpractice.dto.ReviewDto;
 import com.ansh.authconnectionsexample.connectionpractice.model.gigAndReviewEnitities.Gig;
 import com.ansh.authconnectionsexample.connectionpractice.model.gigAndReviewEnitities.Review;
 import com.ansh.authconnectionsexample.connectionpractice.model.userAndAuthEntities.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -20,4 +23,6 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     void deleteByGig(Gig gig);
 
     boolean existsByGigAndParticipant(Gig gig, User participant);
+
+    Page<Review> findByParticipant(User participant,Pageable pageable);
 }
