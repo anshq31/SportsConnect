@@ -16,11 +16,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -198,5 +200,27 @@ public class GigService {
                 .requesterId(request.getRequester().getId())
                 .requesterUsername(request.getRequester().getUsername())
                 .build();
+    }
+
+    @Scheduled(cron = "0 0 * * * *")
+    @Transactional
+    public void autoExpireGigs(){
+        List<Gig> expiredGigs = gigRepository.findByStatusInAndDateTimeBefore(List.of(GigStatus.ACTIVE,GigStatus.FULL), LocalDateTime.now());
+
+        if (expiredGigs.isEmpty()){
+            return;
+        }
+
+        System.out.println("Found " + expiredGigs.size() + " expired gigs. Processing...");
+
+        for (Gig gig : expiredGigs){
+            gigRequestRepository.deleteByGig(gig);
+
+            reviewRepository.deleteByGig(gig);
+
+            chatService.deleteChatGroupForGig(gig);
+
+            gigRepository.delete(gig);
+        }
     }
 }
