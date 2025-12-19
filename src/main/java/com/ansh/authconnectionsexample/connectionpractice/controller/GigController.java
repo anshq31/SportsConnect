@@ -34,6 +34,11 @@ public class GigController {
         return ResponseEntity.ok(gigs);
     }
 
+    @GetMapping("/{gigId}")
+    public ResponseEntity<GigDto> getGigById(@PathVariable Long gigId){
+        return ResponseEntity.ok(gigService.getGigById(gigId));
+    }
+
     @PostMapping("/{gigId}/request-join")
     public ResponseEntity<?> requestToJoin(@PathVariable Long gigId){
         gigService.requestToJoinGig(gigId);

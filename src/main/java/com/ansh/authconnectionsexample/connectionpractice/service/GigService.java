@@ -72,6 +72,13 @@ public class GigService {
     }
 
     @Transactional(readOnly = true)
+    public GigDto getGigById(Long gigId){
+        Gig gig = gigRepository.findById(gigId)
+            .orElseThrow(()-> new RuntimeException("Gig not found with id: " + gigId));
+            return mapToGigDto(gig);
+    }
+
+    @Transactional(readOnly = true)
     public Page<GigDto> getAllActiveGigs(String sport, String location,Pageable pageable){
         Specification<Gig> spec = Specification.where(GigSpecificationService.hasStatus(GigStatus.ACTIVE));
 
