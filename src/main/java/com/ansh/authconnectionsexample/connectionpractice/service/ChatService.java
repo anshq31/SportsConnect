@@ -7,6 +7,7 @@ import com.ansh.authconnectionsexample.connectionpractice.model.gigAndReviewEnit
 import com.ansh.authconnectionsexample.connectionpractice.model.userAndAuthEntities.User;
 import com.ansh.authconnectionsexample.connectionpractice.repository.ChatGroupRepository;
 import com.ansh.authconnectionsexample.connectionpractice.repository.ChatMessageRepository;
+import com.ansh.authconnectionsexample.connectionpractice.repository.GigRepository;
 import com.ansh.authconnectionsexample.connectionpractice.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -16,8 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 @Service
 public class ChatService {
@@ -31,6 +31,10 @@ public class ChatService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private GigRepository gigRepository;
+
+    @Transactional
     public void addMemberToGigChat(Gig gig, User newMember){
         ChatGroup group = chatGroupRepository.findByGig(gig)
                 .orElseGet(()->{
@@ -38,7 +42,6 @@ public class ChatService {
                             .gig(gig)
                             .members(new HashSet<>())
                             .build();
-
                     newGroup.getMembers().add(gig.getGigMaster());
                     return newGroup;
                 });
@@ -46,11 +49,23 @@ public class ChatService {
         chatGroupRepository.save(group);
     }
 
+    @Transactional
     public ChatMessage saveMessage(Long groupId, String senderUsername, ChatMessageDto chatMessageDto){
         User sender = userRepository.findByUsername(senderUsername)
                 .orElseThrow(()->new UsernameNotFoundException("Sender not found"));
         ChatGroup group = chatGroupRepository.findById(groupId)
-                .orElseThrow(()-> new RuntimeException("Chat group not found"));
+                .orElseGet(()->{
+                    Gig gig = gigRepository.findById(groupId)
+                            .orElseThrow(() -> new RuntimeException("Chat group and associated Gig not found for ID: " + groupId));
+
+                    ChatGroup newGroup = ChatGroup.builder()
+                            .id(groupId)
+                            .gig(gig)
+                            .members(new HashSet<>())
+                            .build();
+                    newGroup.getMembers().add(gig.getGigMaster());
+                    return chatGroupRepository.save(newGroup);
+                });
 
         ChatMessage chatMessage = ChatMessage.builder()
                 .group(group)
@@ -63,10 +78,13 @@ public class ChatService {
 
     @Transactional(readOnly = true)
     public Page<ChatMessageDto> getChatHistory(Long groupId, Pageable pageable){
-      ChatGroup group = chatGroupRepository.findById(groupId)
-              .orElseThrow(()->new RuntimeException("Chat group not found"));
+      Optional<ChatGroup> group = chatGroupRepository.findById(groupId);
 
-      Page<ChatMessage> messages = chatMessageRepository.findByGroup(group,pageable);
+        if (group.isEmpty()) {
+            return Page.empty(pageable);
+        }
+
+      Page<ChatMessage> messages = chatMessageRepository.findByGroup(group.get(),pageable);
       return messages.map(this::mapToChatMessageDto);
     }
 

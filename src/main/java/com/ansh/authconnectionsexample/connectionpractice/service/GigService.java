@@ -68,6 +68,8 @@ public class GigService {
                 .status(GigStatus.ACTIVE)
                 .build());
 
+        chatService.addMemberToGigChat(savedGig,savedGig.getGigMaster());
+
         return mapToGigDto(savedGig);
     }
 
