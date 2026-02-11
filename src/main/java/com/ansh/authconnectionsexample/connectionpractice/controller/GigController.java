@@ -34,6 +34,12 @@ public class GigController {
         return ResponseEntity.ok(gigs);
     }
 
+    @GetMapping("/joined")
+    public ResponseEntity<Page<GigDto>> getGigParticipatedIn(@PageableDefault(size = 10,sort = "dateTime")Pageable pageable){
+        Page<GigDto> gigs = gigService.getGigUserParticipatedIn(pageable);
+        return ResponseEntity.ok(gigs);
+    }
+
     @GetMapping("/{gigId}")
     public ResponseEntity<GigDto> getGigById(@PathVariable Long gigId){
         return ResponseEntity.ok(gigService.getGigById(gigId));

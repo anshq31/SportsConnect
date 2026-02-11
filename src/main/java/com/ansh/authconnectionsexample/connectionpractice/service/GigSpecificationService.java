@@ -2,6 +2,7 @@ package com.ansh.authconnectionsexample.connectionpractice.service;
 
 import com.ansh.authconnectionsexample.connectionpractice.model.enums.GigStatus;
 import com.ansh.authconnectionsexample.connectionpractice.model.gigAndReviewEnitities.Gig;
+import jakarta.persistence.criteria.Join;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
@@ -20,5 +21,21 @@ public  class GigSpecificationService {
     public static Specification<Gig> hasLocation(String location){
         return ((root, query, criteriaBuilder) ->
                 criteriaBuilder.equal(criteriaBuilder.lower(root.get("location")),"%"+location.toLowerCase()+"%"));
+    }
+
+    public static Specification<Gig> notCreatedBy(String username){
+        return ((root, query, criteriaBuilder) ->
+                criteriaBuilder.notEqual(criteriaBuilder.lower(root.get("gigMaster").get("username")), username));
+    }
+
+    public static Specification<Gig> hasParticipant(String username){
+        return (root, query, criteriaBuilder) -> {
+            assert query != null;
+            query.distinct(true);
+
+            Join<Object,Object> participants = root.join("acceptedParticipants");
+
+            return criteriaBuilder.equal(participants.get("username"),username);
+        };
     }
 }
