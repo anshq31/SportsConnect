@@ -81,12 +81,24 @@ public class GigService {
     }
 
     @Transactional(readOnly = true)
+    public Page<GigDto> getGigByGigMaster(Pageable pageable){
+        User user = getAuthenticatedUser();
+
+        Specification<Gig> spec = Specification.where(GigSpecificationService.hasGigMaster(user.getUsername()));
+
+        Page<Gig> gigPage = gigRepository.findAll(spec,pageable);
+
+        return gigPage.map(this::mapToGigDto);
+    }
+
+    @Transactional(readOnly = true)
     public Page<GigDto> getAllActiveGigs(String sport, String location,Pageable pageable){
 
         User user = getAuthenticatedUser();
 
         Specification<Gig> spec = Specification.where(GigSpecificationService.hasStatus(GigStatus.ACTIVE))
-                .and(GigSpecificationService.notCreatedBy(user.getUsername()));
+                .and(GigSpecificationService.notCreatedBy(user.getUsername()))
+                .and(GigSpecificationService.userNotParticipant(user.getUsername()));
 
         if (sport != null && !sport.isEmpty()) {
             spec = spec.and(GigSpecificationService.hasSport(sport));
@@ -148,8 +160,9 @@ public class GigService {
             throw new RuntimeException("User is not authorized to accept this request");
         }
 
-        request.setStatus(RequestStatus.ACCEPTED);
+
         gig.getAcceptedParticipants().add(request.getRequester());
+        request.setStatus(RequestStatus.ACCEPTED);
 
         if (gig.getAcceptedParticipants().size() == gig.getPlayersNeeded()){
             gig.setStatus(GigStatus.FULL);

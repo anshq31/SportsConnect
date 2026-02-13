@@ -1,5 +1,6 @@
 package com.ansh.authconnectionsexample.connectionpractice.repository;
 
+import com.ansh.authconnectionsexample.connectionpractice.dto.GigDto;
 import com.ansh.authconnectionsexample.connectionpractice.model.enums.GigStatus;
 import com.ansh.authconnectionsexample.connectionpractice.model.gigAndReviewEnitities.Gig;
 import com.ansh.authconnectionsexample.connectionpractice.model.userAndAuthEntities.User;
@@ -15,7 +16,6 @@ import java.util.Optional;
 public interface GigRepository extends JpaRepository<Gig,Long>,JpaSpecificationExecutor<Gig> {
 
 //    Page<Gig> findByStatus(GigStatus status, Pageable pageable);
-
     Optional<Gig> findByGigMasterAndStatusIn(User gigMaster, List<GigStatus> statuses);
     List<Gig>  findByStatusInAndDateTimeBefore(List<GigStatus> statuses, LocalDateTime dateTime);
 }
