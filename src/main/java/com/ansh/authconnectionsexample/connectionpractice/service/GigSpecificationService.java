@@ -24,7 +24,7 @@ public  class GigSpecificationService {
 
     public static Specification<Gig> hasLocation(String location){
         return ((root, query, criteriaBuilder) ->
-                criteriaBuilder.equal(criteriaBuilder.lower(root.get("location")),"%"+location.toLowerCase()+"%"));
+                criteriaBuilder.like(criteriaBuilder.lower(root.get("location")),"%"+location.toLowerCase()+"%"));
     }
 
     public static Specification<Gig> notCreatedBy(String username){
@@ -46,7 +46,7 @@ public  class GigSpecificationService {
 
     public static Specification<Gig> hasGigMaster(String username){
         return (root, query, criteriaBuilder) -> {
-            if (query == null) {
+            if (query != null) {
                 query.distinct(true);
             }
 
@@ -64,7 +64,7 @@ public  class GigSpecificationService {
 
             Subquery<Long> subquery = query.subquery(Long.class);
             Root<Gig> subRoot = subquery.from(Gig.class);
-            Join<Gig,User> participants = root.join("acceptedParticipants",JoinType.LEFT);
+            Join<Gig,User> participants = subRoot.join("acceptedParticipants",JoinType.LEFT);
 
             subquery.select(subRoot.get("id"))
                     .where(

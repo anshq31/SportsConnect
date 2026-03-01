@@ -58,6 +58,8 @@ public class ChatService {
                     Gig gig = gigRepository.findById(groupId)
                             .orElseThrow(() -> new RuntimeException("Chat group and associated Gig not found for ID: " + groupId));
 
+
+
                     ChatGroup newGroup = ChatGroup.builder()
                             .id(groupId)
                             .gig(gig)
@@ -66,6 +68,10 @@ public class ChatService {
                     newGroup.getMembers().add(gig.getGigMaster());
                     return chatGroupRepository.save(newGroup);
                 });
+
+        if (!group.getMembers().contains(sender)){
+            throw new RuntimeException("User is not a member of this chat group");
+        }
 
         ChatMessage chatMessage = ChatMessage.builder()
                 .group(group)
@@ -78,14 +84,12 @@ public class ChatService {
 
     @Transactional(readOnly = true)
     public Page<ChatMessageDto> getChatHistory(Long groupId, Pageable pageable){
-      Optional<ChatGroup> group = chatGroupRepository.findById(groupId);
 
-        if (group.isEmpty()) {
-            return Page.empty(pageable);
-        }
+        ChatGroup group = chatGroupRepository.findById(groupId)
+                .orElseThrow(() -> new RuntimeException("Chat group not found"));
 
-      Page<ChatMessage> messages = chatMessageRepository.findByGroup(group.get(),pageable);
-      return messages.map(this::mapToChatMessageDto);
+        Page<ChatMessage> messages = chatMessageRepository.findByGroup(group,pageable);
+        return messages.map(this::mapToChatMessageDto);
     }
 
     public void deleteChatGroupForGig(Gig gig){

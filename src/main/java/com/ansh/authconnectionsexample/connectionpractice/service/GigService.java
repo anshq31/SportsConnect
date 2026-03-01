@@ -176,6 +176,10 @@ public class GigService {
 
         Gig gig = request.getGig();
 
+        if (gig.getStatus() != GigStatus.ACTIVE) {
+            throw new RuntimeException("Cannot accept requests for a non active gig");
+        }
+
         if (!gig.getGigMaster().equals(gigMaster)){
             throw new RuntimeException("User is not authorized to accept this request");
         }
@@ -199,7 +203,7 @@ public class GigService {
         GigRequest request = gigRequestRepository.findById(requestId)
                 .orElseThrow(()-> new RuntimeException("Request not found"));
 
-        if (request.getGig().getGigMaster() != gigMaster){
+        if (!request.getGig().getGigMaster().equals( gigMaster)){
             throw new RuntimeException("User is not authorized to reject this request");
         }
 
@@ -214,6 +218,11 @@ public class GigService {
         if (!gig.getGigMaster().equals(gigMaster)){
             throw new RuntimeException("User is not authorized to complete the gig");
         }
+
+        if (gig.getStatus() != GigStatus.ACTIVE && gig.getStatus() != GigStatus.FULL) {
+            throw new RuntimeException("Gig can only be completed if it is ACTIVE or FULL");
+        }
+
         gig.setStatus(GigStatus.COMPLETED);
         Gig completeGig = gigRepository.save(gig);
 
@@ -250,12 +259,13 @@ public class GigService {
             }
         }
 
-        assert user != null;
-        boolean isOwner = gig.getGigMaster().getId().equals(user.getId());
 
-        boolean isParticipant = gig.getAcceptedParticipants().stream().anyMatch(u-> u.getId().equals(user.getId()));
+        boolean isOwner = user != null && gig.getGigMaster().getId().equals(user.getId());
 
+        boolean isParticipant = user != null && gig.getAcceptedParticipants().stream().anyMatch(u-> u.getId().equals(user.getId()));
 
+//        SOME LOGS :::::::
+//        ____________________________________________________
         System.out.println(gig.getId());
 
         System.out.println(gig.getGigMaster().getUsername());
@@ -263,7 +273,7 @@ public class GigService {
         System.out.println(user != null ? user.getUsername() : "null");
 
         System.out.println(isOwner);
-
+//__________________________________________________________
         return GigDto.builder()
                 .id(gig.getId())
                 .sport(gig.getSport())

@@ -21,7 +21,7 @@ public class ChatController {
     @Autowired
     private ChatService chatService;
 
-    @GetMapping("{groupId}/history")
+    @GetMapping("/{groupId}/history")
     public ResponseEntity<Page<ChatMessageDto>> getHistory(@PathVariable Long groupId, @PageableDefault(size = 20,sort = "timeStamp",direction = Sort.Direction.DESC)Pageable pageable){
         Page<ChatMessageDto> history = chatService.getChatHistory(groupId,pageable);
         return ResponseEntity.ok(history);
