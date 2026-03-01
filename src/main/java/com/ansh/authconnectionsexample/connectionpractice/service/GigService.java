@@ -24,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -75,9 +76,12 @@ public class GigService {
 
     @Transactional(readOnly = true)
     public GigDto getGigById(Long gigId){
+
+        User user = getAuthenticatedUser();
+
         Gig gig = gigRepository.findById(gigId)
             .orElseThrow(()-> new RuntimeException("Gig not found with id: " + gigId));
-            return mapToGigDto(gig);
+            return mapToGigDto(gig,user);
     }
 
     @Transactional(readOnly = true)
@@ -129,6 +133,22 @@ public class GigService {
                 .orElseThrow(()->new RuntimeException("Gig not found"));
         if (gig.getStatus() != GigStatus.ACTIVE){
             throw new RuntimeException("This gig is not longer Active");
+        }
+
+        if (gig.getGigMaster().getUsername().equals(requester.getUsername())){
+            throw  new RuntimeException("You cannot join your own gig");
+        }
+
+        boolean isAlreadyParticipant = gig.getAcceptedParticipants().stream().anyMatch(u-> u.getUsername().equals(requester.getUsername()));
+
+        if (isAlreadyParticipant){
+            throw new RuntimeException("Already a participant in this gig");
+        }
+
+        boolean hasPendingRequest = gigRequestRepository
+                .existsByGigAndRequesterAndStatus(gig, requester, RequestStatus.PENDING);
+        if (hasPendingRequest) {
+            throw new RuntimeException("You already have a pending request for this gig");
         }
 
         GigRequest gigRequest = GigRequest.builder()
@@ -217,7 +237,33 @@ public class GigService {
 
 
 
-    private GigDto mapToGigDto(Gig gig){
+    private GigDto mapToGigDto(Gig gig,User user){
+
+
+        String requestStatus = "NONE";
+
+        if (user != null){
+               Optional<GigRequest> existingRequest = gigRequestRepository.findByGigAndRequester(gig,user);
+
+            if (existingRequest.isPresent()){
+                requestStatus = existingRequest.get().getStatus().name();
+            }
+        }
+
+        assert user != null;
+        boolean isOwner = gig.getGigMaster().getId().equals(user.getId());
+
+        boolean isParticipant = gig.getAcceptedParticipants().stream().anyMatch(u-> u.getId().equals(user.getId()));
+
+
+        System.out.println(gig.getId());
+
+        System.out.println(gig.getGigMaster().getUsername());
+
+        System.out.println(user != null ? user.getUsername() : "null");
+
+        System.out.println(isOwner);
+
         return GigDto.builder()
                 .id(gig.getId())
                 .sport(gig.getSport())
@@ -227,7 +273,19 @@ public class GigService {
                 .status(gig.getStatus().name())
                 .gigMasterUsername(gig.getGigMaster().getUsername())
                 .acceptedParticipants(gig.getAcceptedParticipants().stream().map(User::getUsername).collect(Collectors.toSet()))
+                .requestStatus(requestStatus)
+                .Owner(isOwner)
+                .Participant(isParticipant)
                 .build();
+    }
+
+    private GigDto mapToGigDto(Gig gig){
+        try {
+            User currentUser = getAuthenticatedUser();
+            return mapToGigDto(gig, currentUser);
+        } catch (Exception e) {
+            return mapToGigDto(gig, null);
+        }
     }
 
     private GigRequestDto mapToGigRequestDto(GigRequest request){

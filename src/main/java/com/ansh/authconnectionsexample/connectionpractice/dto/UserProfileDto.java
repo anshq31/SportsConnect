@@ -17,5 +17,5 @@ public class UserProfileDto {
     private String experience;
     private BigDecimal overallRating;
     private Set<String> skill;
-//    private List<ReviewDto> reviewsReceived;
+    private List<ReviewDto> reviewsReceived;
 }
