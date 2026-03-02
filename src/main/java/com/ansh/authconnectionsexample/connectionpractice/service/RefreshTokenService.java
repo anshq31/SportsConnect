@@ -33,6 +33,9 @@ public class RefreshTokenService {
 
         if (existingTokenOpt.isPresent()){
             tokenToSave = existingTokenOpt.get();
+            if (!isExpired(tokenToSave)){
+                return tokenToSave;
+            }
             tokenToSave.setToken(UUID.randomUUID().toString());
             tokenToSave.setExpiryDate(Instant.now().plusMillis(refreshTokenDurationMs));
         }else {
