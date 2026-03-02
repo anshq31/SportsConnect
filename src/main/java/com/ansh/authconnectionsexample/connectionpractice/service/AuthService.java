@@ -98,6 +98,7 @@ public class AuthService {
             throw new RuntimeException("Refresh token expired. Please login again ");
         }
 
+
         String newAccessToken = jwtService.generateAccessToken(savedToken.getUser().getUsername());
 
 //        refreshTokenService.deleteByUser(savedToken.getUser());
@@ -106,6 +107,9 @@ public class AuthService {
         return AuthResponse.builder()
                 .accessToken(newAccessToken)
                 .refreshToken(newRefreshToken.getToken())
+                .id(savedToken.getUser().getId())
+                .username(savedToken.getUser().getUsername())
+                .email(savedToken.getUser().getEmail())
                 .build();
     }
 
