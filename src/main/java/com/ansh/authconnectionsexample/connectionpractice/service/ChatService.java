@@ -17,7 +17,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
-import java.util.Optional;
 
 @Service
 public class ChatService {
@@ -101,6 +100,7 @@ public class ChatService {
 
     private ChatMessageDto mapToChatMessageDto(ChatMessage message){
         return ChatMessageDto.builder()
+                .id(message.getId().toString())
                 .senderUsername(message.getSender().getUsername())
                 .content(message.getContent())
                 .timeStamp(message.getTimeStamp())

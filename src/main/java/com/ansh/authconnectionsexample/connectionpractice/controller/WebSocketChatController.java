@@ -34,6 +34,7 @@ public class WebSocketChatController {
         String destination = "/topic/chat/" + groupId;
 
         ChatMessageDto broadcastDto = ChatMessageDto.builder()
+                .id(savedMessage.getId().toString())
                 .senderUsername(savedMessage.getSender().getUsername())
                 .content(savedMessage.getContent())
                 .timeStamp(savedMessage.getTimeStamp())
