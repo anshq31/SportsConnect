@@ -38,6 +38,9 @@ public class Gig {
     @Column(nullable = false)
     private Integer playersNeeded;
 
+    @Column
+    private LocalDateTime completedAt;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private GigStatus status;

@@ -17,9 +17,12 @@ public class Review {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "gig_id",nullable = false)
-    private Gig gig;
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "gig_id",nullable = false)
+//    private Gig gig;
+
+    @Column(name = "gig_id", nullable = false)
+    private Long gigId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "reviewer_id",nullable = false)

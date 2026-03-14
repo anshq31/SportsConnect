@@ -84,14 +84,14 @@ public class UserService {
                .experience(user.getExperience())
                .overallRating(user.getOverallRating())
                .skill(user.getSkills().stream().map(Skill::getName).collect(Collectors.toSet()))
-               .reviewsReceived(user.getReviewsReceived().stream().map(this::mapToReviewDto).collect(Collectors.toList()))
+//               .reviewsReceived(user.getReviewsReceived().stream().map(this::mapToReviewDto).collect(Collectors.toList()))
                .build();
    }
 
    private ReviewDto mapToReviewDto(Review review){
         return ReviewDto.builder()
                .id(review.getId())
-               .gigId(review.getGig().getId())
+               .gigId(review.getGigId())
                .reviewerUsername(review.getReviewer().getUsername())
                .rating(review.getRating())
                .comment(review.getComment())

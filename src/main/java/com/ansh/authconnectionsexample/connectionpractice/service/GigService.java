@@ -3,6 +3,7 @@ package com.ansh.authconnectionsexample.connectionpractice.service;
 import com.ansh.authconnectionsexample.connectionpractice.dto.GigCreateRequest;
 import com.ansh.authconnectionsexample.connectionpractice.dto.GigDto;
 import com.ansh.authconnectionsexample.connectionpractice.dto.GigRequestDto;
+import com.ansh.authconnectionsexample.connectionpractice.dto.ParticipantDto;
 import com.ansh.authconnectionsexample.connectionpractice.model.enums.GigStatus;
 import com.ansh.authconnectionsexample.connectionpractice.model.enums.RequestStatus;
 import com.ansh.authconnectionsexample.connectionpractice.model.gigAndReviewEnitities.Gig;
@@ -88,7 +89,7 @@ public class GigService {
     public Page<GigDto> getGigByGigMaster(Pageable pageable){
         User user = getAuthenticatedUser();
 
-        Specification<Gig> spec = Specification.where(GigSpecificationService.hasGigMaster(user.getUsername()));
+        Specification<Gig> spec = Specification.where(GigSpecificationService.hasGigMaster(user.getUsername())).and(GigSpecificationService.hasStatus(GigStatus.ACTIVE));
 
         Page<Gig> gigPage = gigRepository.findAll(spec,pageable);
 
@@ -120,7 +121,8 @@ public class GigService {
     public Page<GigDto> getGigUserParticipatedIn(Pageable pageable){
         User user = getAuthenticatedUser();
 
-        Specification<Gig> spec = Specification.where(GigSpecificationService.hasParticipant(user.getUsername()));
+        Specification<Gig> spec = Specification.where(GigSpecificationService.hasParticipant(user.getUsername()))
+                .and(GigSpecificationService.hasStatus(GigStatus.ACTIVE).or(GigSpecificationService.hasStatus(GigStatus.FULL)));
 
         Page<Gig> gigPage = gigRepository.findAll(spec,pageable);
 
@@ -169,6 +171,7 @@ public class GigService {
         return requestPage.map(this::mapToGigRequestDto);
     }
 
+    @Transactional
     public void acceptGigRequest(Long requestId){
         User gigMaster = getAuthenticatedUser();
         GigRequest request = gigRequestRepository.findById(requestId)
@@ -198,6 +201,7 @@ public class GigService {
         gigRepository.save(gig);
     }
 
+    @Transactional
     public void rejectGigRequest(Long requestId){
         User gigMaster = getAuthenticatedUser();
         GigRequest request = gigRequestRepository.findById(requestId)
@@ -224,7 +228,9 @@ public class GigService {
         }
 
         gig.setStatus(GigStatus.COMPLETED);
+        gig.setCompletedAt(LocalDateTime.now());
         Gig completeGig = gigRepository.save(gig);
+
 
         chatService.deleteChatGroupForGig(gig);
         return mapToGigDto(completeGig);
@@ -239,7 +245,6 @@ public class GigService {
         }
 
         gigRequestRepository.deleteByGig(gig);
-        reviewRepository.deleteByGig(gig);
         chatService.deleteChatGroupForGig(gig);
         gigRepository.delete(gig);
     }
@@ -282,7 +287,14 @@ public class GigService {
                 .playersNeeded(gig.getPlayersNeeded())
                 .status(gig.getStatus().name())
                 .gigMasterUsername(gig.getGigMaster().getUsername())
-                .acceptedParticipants(gig.getAcceptedParticipants().stream().map(User::getUsername).collect(Collectors.toSet()))
+                .acceptedParticipants(gig.getAcceptedParticipants()
+                        .stream()
+                        .map(u->
+                        ParticipantDto.builder()
+                                .id(u.getId())
+                                .username(u.getUsername())
+                                .build())
+                        .collect(Collectors.toSet()))
                 .requestStatus(requestStatus)
                 .Owner(isOwner)
                 .Participant(isParticipant)
@@ -306,25 +318,54 @@ public class GigService {
                 .build();
     }
 
-    @Scheduled(cron = "0 0 * * * *")
-    @Transactional
-    public void autoExpireGigs(){
-        List<Gig> expiredGigs = gigRepository.findByStatusInAndDateTimeBefore(List.of(GigStatus.ACTIVE,GigStatus.FULL), LocalDateTime.now());
 
-        if (expiredGigs.isEmpty()){
+    @Scheduled(cron = "0 0 0 * * *")
+    @Transactional
+    public void autoCompleteGigs(){
+
+        System.out.println("CRON 1 RUNNING AT: " + LocalDateTime.now());
+
+        List<Gig> completedGigs = gigRepository.findByStatusInAndDateTimeBefore(List.of(GigStatus.ACTIVE,GigStatus.FULL), LocalDateTime.now());
+
+        if (completedGigs.isEmpty()){
             return;
         }
 
-        System.out.println("Found " + expiredGigs.size() + " expired gigs. Processing...");
+        System.out.println("Found " + completedGigs.size() + " expired gigs. Processing...");
 
-        for (Gig gig : expiredGigs){
-            gigRequestRepository.deleteByGig(gig);
-
-            reviewRepository.deleteByGig(gig);
-
-            chatService.deleteChatGroupForGig(gig);
-
-            gigRepository.delete(gig);
+        for (Gig gig : completedGigs){
+            try {
+                gig.setStatus(GigStatus.COMPLETED);
+                gig.setCompletedAt(LocalDateTime.now());
+                gigRepository.save(gig);
+            }catch (Exception e){
+                System.out.println("CRON 1 — Failed to expire gig " + gig.getId() + ": " + e.getMessage());
+            }
         }
     }
+
+    @Scheduled(cron = "0 0 2 * * *")
+    @Transactional
+    public void autoDeleteCompleteGigs(){
+        LocalDateTime cuttoff = LocalDateTime.now().minusDays(2);
+
+        System.out.println("CRON 1 RUNNING AT: " + LocalDateTime.now());
+
+        List<Gig> gigsToDelete = gigRepository.findByStatusAndCompletedAtBefore(GigStatus.COMPLETED,cuttoff);
+
+        if (gigsToDelete.isEmpty()){
+            return;
+        }
+
+        for (Gig gig : gigsToDelete){
+            try {
+                gigRequestRepository.deleteByGig(gig);
+                chatService.deleteChatGroupForGig(gig);
+                gigRepository.delete(gig);
+            }catch (Exception e){
+                System.out.println("CRON 2 — Failed to delete gig " + gig.getId() + ": " + e.getMessage());
+            }
+        }
+    }
+
 }

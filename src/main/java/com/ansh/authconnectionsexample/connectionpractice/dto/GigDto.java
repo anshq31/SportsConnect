@@ -21,7 +21,7 @@ public class GigDto {
     private Integer playersNeeded;
     private String status;
     private String gigMasterUsername;
-    private Set<String> acceptedParticipants;
+    private Set<ParticipantDto> acceptedParticipants;
 
     @JsonProperty("isOwner")
     private boolean Owner;

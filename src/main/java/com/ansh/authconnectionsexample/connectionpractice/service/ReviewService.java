@@ -59,12 +59,12 @@ public class ReviewService {
             throw new RuntimeException("This user was not a participant in the gig");
         }
 
-        if (reviewRepository.existsByGigAndParticipant(gig,participant)){
+        if (reviewRepository.existsByGigIdAndParticipant(gig.getId(),participant)){
             throw new RuntimeException("You have already reviewed this participant");
         }
 
         Review review = Review.builder()
-                .gig(gig)
+                .gigId(gig.getId())
                 .reviewer(gigMaster)
                 .participant(participant)
                 .comment(reviewRequest.getComment())
@@ -92,7 +92,7 @@ public class ReviewService {
         return ReviewDto.builder()
                 .id(review.getId())
                 .reviewerUsername(review.getReviewer().getUsername())
-                .gigId(review.getGig().getId())
+                .gigId(review.getGigId())
                 .comment(review.getComment())
                 .rating(review.getRating())
                 .build();
