@@ -27,6 +27,11 @@ public class WebSocketChatController {
             @Payload ChatMessageDto chatMessageDto,
             Principal principal
             ){
+
+        if (principal == null){
+            throw new RuntimeException("Unauthorized websocket session");
+        }
+
         String username = principal.getName();
 
         ChatMessage savedMessage = chatService.saveMessage(groupId,username,chatMessageDto);

@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
+import java.util.Optional;
 
 @Service
 public class ChatService {
@@ -49,24 +50,12 @@ public class ChatService {
     }
 
     @Transactional
-    public ChatMessage saveMessage(Long groupId, String senderUsername, ChatMessageDto chatMessageDto){
+    public ChatMessage saveMessage(Long gigId, String senderUsername, ChatMessageDto chatMessageDto){
         User sender = userRepository.findByUsername(senderUsername)
                 .orElseThrow(()->new UsernameNotFoundException("Sender not found"));
-        ChatGroup group = chatGroupRepository.findById(groupId)
-                .orElseGet(()->{
-                    Gig gig = gigRepository.findById(groupId)
-                            .orElseThrow(() -> new RuntimeException("Chat group and associated Gig not found for ID: " + groupId));
 
-
-
-                    ChatGroup newGroup = ChatGroup.builder()
-                            .id(groupId)
-                            .gig(gig)
-                            .members(new HashSet<>())
-                            .build();
-                    newGroup.getMembers().add(gig.getGigMaster());
-                    return chatGroupRepository.save(newGroup);
-                });
+        ChatGroup group = resolveChatGroup(gigId,true)
+                .orElseThrow(()-> new RuntimeException("Chat group and associated Gig not found for ID: " + gigId));
 
         if (!group.getMembers().contains(sender)){
             throw new RuntimeException("User is not a member of this chat group");
@@ -82,13 +71,34 @@ public class ChatService {
     }
 
     @Transactional(readOnly = true)
-    public Page<ChatMessageDto> getChatHistory(Long groupId, Pageable pageable){
+    public Page<ChatMessageDto> getChatHistory(Long gigId, Pageable pageable){
 
-        ChatGroup group = chatGroupRepository.findById(groupId)
-                .orElseThrow(() -> new RuntimeException("Chat group not found"));
+        Optional<ChatGroup> group = resolveChatGroup(gigId, false);
+        if (group.isEmpty()) {
+            return Page.empty(pageable);
+        }
 
-        Page<ChatMessage> messages = chatMessageRepository.findByGroup(group,pageable);
+        Page<ChatMessage> messages = chatMessageRepository.findByGroup(group.get(),pageable);
         return messages.map(this::mapToChatMessageDto);
+    }
+
+    private Optional<ChatGroup> resolveChatGroup(Long gigId, boolean createIfMissing){
+        Optional<ChatGroup> existingGroup = chatGroupRepository.findById(gigId)
+                .or(()-> chatGroupRepository.findByGigId(gigId));
+
+        if (existingGroup.isPresent() || !createIfMissing){
+            return existingGroup;
+        }
+
+        return gigRepository.findById(gigId)
+                .map(gig -> {
+                    ChatGroup newGroup = ChatGroup.builder()
+                            .gig(gig)
+                            .members(new HashSet<>())
+                            .build();
+                    newGroup.getMembers().add(gig.getGigMaster());
+                    return chatGroupRepository.save(newGroup);
+                });
     }
 
     public void deleteChatGroupForGig(Gig gig){

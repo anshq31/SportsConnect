@@ -8,6 +8,6 @@ import java.util.Optional;
 
 public interface ChatGroupRepository extends JpaRepository<ChatGroup,Long> {
     Optional<ChatGroup> findByGig(Gig gig);
-
+    Optional<ChatGroup> findByGigId(Long GigId);
     void deleteByGig(Gig gig);
 }
