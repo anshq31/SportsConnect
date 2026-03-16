@@ -41,10 +41,4 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         }
     }
-
-//    @PostMapping("/logout")
-//    public ResponseEntity<?> logout(@RequestParam String username){
-//        authService.logout(username);
-//        return ResponseEntity.ok().build();
-//    }
 }

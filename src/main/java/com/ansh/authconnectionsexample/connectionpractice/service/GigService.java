@@ -269,16 +269,6 @@ public class GigService {
 
         boolean isParticipant = user != null && gig.getAcceptedParticipants().stream().anyMatch(u-> u.getId().equals(user.getId()));
 
-//        SOME LOGS :::::::
-//        ____________________________________________________
-        System.out.println(gig.getId());
-
-        System.out.println(gig.getGigMaster().getUsername());
-
-        System.out.println(user != null ? user.getUsername() : "null");
-
-        System.out.println(isOwner);
-//__________________________________________________________
         return GigDto.builder()
                 .id(gig.getId())
                 .sport(gig.getSport())
@@ -323,7 +313,6 @@ public class GigService {
     @Transactional
     public void autoCompleteGigs(){
 
-        System.out.println("CRON 1 RUNNING AT: " + LocalDateTime.now());
 
         List<Gig> completedGigs = gigRepository.findByStatusInAndDateTimeBefore(List.of(GigStatus.ACTIVE,GigStatus.FULL), LocalDateTime.now());
 
@@ -331,7 +320,6 @@ public class GigService {
             return;
         }
 
-        System.out.println("Found " + completedGigs.size() + " expired gigs. Processing...");
 
         for (Gig gig : completedGigs){
             try {
@@ -339,7 +327,7 @@ public class GigService {
                 gig.setCompletedAt(LocalDateTime.now());
                 gigRepository.save(gig);
             }catch (Exception e){
-                System.out.println("CRON 1 — Failed to expire gig " + gig.getId() + ": " + e.getMessage());
+
             }
         }
     }
@@ -363,7 +351,7 @@ public class GigService {
                 chatService.deleteChatGroupForGig(gig);
                 gigRepository.delete(gig);
             }catch (Exception e){
-                System.out.println("CRON 2 — Failed to delete gig " + gig.getId() + ": " + e.getMessage());
+
             }
         }
     }

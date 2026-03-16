@@ -101,7 +101,6 @@ public class AuthService {
 
         String newAccessToken = jwtService.generateAccessToken(savedToken.getUser().getUsername());
 
-//        refreshTokenService.deleteByUser(savedToken.getUser());
         RefreshToken newRefreshToken = refreshTokenService.createRefreshToken(savedToken.getUser());
 
         return AuthResponse.builder()
@@ -112,8 +111,4 @@ public class AuthService {
                 .email(savedToken.getUser().getEmail())
                 .build();
     }
-
-//    public void logout(String username){
-//        userRepository.findByUsername(username).ifPresent(refreshTokenService::deleteByUser);
-//    }
 }
