@@ -8,11 +8,11 @@
 		<version>3.4.11</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.ansh.authconnectionsexample</groupId>
-	<artifactId>connectionpractice</artifactId>
+	<groupId>com.ansh.sportsconnect</groupId>
+	<artifactId>sportsconnect</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>connectionpractice</name>
-	<description>learning frontend connections</description>
+	<name>sportsconnect</name>
+	<description>sports gig connection platform</description>
 	<url/>
 	<licenses>
 		<license/>
