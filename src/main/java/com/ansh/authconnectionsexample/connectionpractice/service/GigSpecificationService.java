@@ -19,7 +19,7 @@ public  class GigSpecificationService {
 
     public static Specification<Gig> hasSport(String sport){
         return ((root, query, criteriaBuilder) ->
-                criteriaBuilder.equal(criteriaBuilder.lower(root.get("sport")),sport.toLowerCase()));
+                criteriaBuilder.like(criteriaBuilder.lower(root.get("sport")),"%"+sport.toLowerCase()+"%"));
     }
 
     public static Specification<Gig> hasLocation(String location){

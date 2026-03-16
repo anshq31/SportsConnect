@@ -63,7 +63,7 @@ public class GigService {
 
         Gig savedGig = gigRepository.save(Gig.builder()
                 .gigMaster(user)
-                .sport(createRequest.getSport())
+                .sport(createRequest.getSport().toLowerCase())
                 .location(createRequest.getLocation())
                 .dateTime(createRequest.getDateTime())
                 .playersNeeded(createRequest.getPlayersNeeded())
