@@ -161,5 +161,3 @@ src/
 - Inspiration from online sports booking platforms
 
 ---
-
-_Last updated: 2026-03-16_
