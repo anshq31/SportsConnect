@@ -1,120 +1,177 @@
-# SportsConnect (Backend)
+# SportsConnect — Backend
 
-[![Build](https://img.shields.io/github/workflow/status/anshq31/SportsConnect/Java%20CI)](https://github.com/anshq31/SportsConnect/actions)
-[View Commits](https://github.com/anshq31/SportsConnect/commits/main)
+A production-deployed Spring Boot backend (100% Java) for the SportsConnect platform — enabling users to create, join, and manage sports gigs, participate in real-time team chats, leave reviews, and build their player profile.
 
-A robust Spring Boot backend (100% Java) for the SportsConnect platform — enabling users to create, join, and manage sports gigs, participate in real-time chats, leave reviews, and more.
+**Live API:** `https://sportsconnect-c2po.onrender.com`
 
 ---
 
 ## 🚀 Features
 
-- **Authentication & JWT Security**: User registration, login, refresh tokens, secure endpoints, password hashing.
-- **Gigs Management**: Create, join, complete, and delete sports gigs. Full CRUD with participant flow.
-- **Team Chat (Realtime)**: Group chat per gig powered by WebSocket/STOMP.
-- **User Profiles & Skills**: Rich user profiles with customizable experience and skills.
-- **Review System**: Users can rate and review other participants post-gig; profile ratings aggregate historical feedback.
-- **RESTful API**: All business logic exposed via JSON, secured using JWT authentication.
+- **Authentication & JWT Security** — Register, login, refresh tokens, BCrypt password hashing, secured endpoints
+- **Gig Management** — Create, browse, join, complete, and delete sports gigs with full participant flow
+- **Real-time Team Chat** — Group chat per gig powered by WebSocket/STOMP, persisted to DB
+- **User Profiles & Skills** — Rich profiles with customizable experience, skills, and aggregated ratings
+- **Review System** — Gig masters can review participants post-completion; ratings persist independently of gig lifecycle
+- **Automated Lifecycle** — Scheduled cron jobs auto-complete expired gigs and clean up old completed gigs
+- **RESTful API** — All business logic exposed via JSON, secured with JWT Bearer tokens
 
 ---
 
 ## 🛠️ Tech Stack
 
-- **Spring Boot 3.x**
-- **Spring Security (JWT)**
-- **Spring WebSocket & STOMP** for realtime chat
-- **Spring Data JPA & Hibernate** (MySQL by default)
-- **Lombok** for DTOs and entities
-- **JUnit & Mockito** for testing
+| Layer | Technology |
+|---|---|
+| Framework | Spring Boot 3.x |
+| Security | Spring Security + JWT (JJWT) |
+| Realtime | Spring WebSocket + STOMP |
+| Persistence | Spring Data JPA + Hibernate |
+| Database | PostgreSQL (Render managed) |
+| Deployment | Docker on Render |
+| Utilities | Lombok, Jackson |
 
 ---
 
-## 🧩 API Structure
+## 🌐 Live Deployment
+
+| Item | Detail |
+|---|---|
+| Platform | [Render](https://render.com) |
+| Base URL | `https://sportsconnect-c2po.onrender.com` |
+| Database | Render PostgreSQL (Singapore region) |
+| Container | Docker (eclipse-temurin:17) |
+
+> **Note:** The API is hosted on Render's free tier. The first request after a period of inactivity may take 30–60 seconds while the service wakes up. Subsequent requests are fast.
+
+---
+
+## 🧩 API Reference
 
 ### Authentication
-- `POST /api/auth/register` — Register user
-- `POST /api/auth/login` — Login and get JWT
-- `POST /api/auth/refresh` — Refresh JWT (safe, doesn’t invalidate other sessions)
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/api/auth/register` | Register a new user |
+| POST | `/api/auth/login` | Login and receive JWT |
+| POST | `/api/auth/refresh` | Refresh access token |
 
 ### Gigs
-- `POST   /api/gigs`                    — Create a gig
-- `GET    /api/gigs/active`             — List all joinable gigs (with filters)
-- `GET    /api/gigs/created`            — Gigs you created
-- `GET    /api/gigs/joined`             — Gigs you joined
-- `POST   /api/gigs/{id}/request-join`  — Request to join a gig
-- `PUT    /api/gigs/{id}/complete`      — Mark gig as complete
-- `DELETE /api/gigs/{id}`               — Delete gig
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/api/gigs` | Create a gig |
+| GET | `/api/gigs/active` | Browse joinable gigs (supports `?sport=` and `?location=` filters) |
+| GET | `/api/gigs/created` | Gigs you created |
+| GET | `/api/gigs/joined` | Gigs you joined |
+| GET | `/api/gigs/{id}` | Get gig detail |
+| POST | `/api/gigs/{id}/request-join` | Request to join a gig |
+| PUT | `/api/gigs/{id}/complete` | Mark gig as complete |
+| DELETE | `/api/gigs/{id}` | Delete your gig |
 
 ### Participation
-- `GET    /api/gigs/my-gig/requests`                — See join requests for your gig
-- `POST   /api/gigs/my-gig/requests/{id}/accept`    — Accept request
-- `POST   /api/gigs/my-gig/requests/{id}/reject`    — Reject request
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/api/gigs/my-gig/requests` | View join requests for your gig |
+| POST | `/api/gigs/my-gig/requests/{id}/accept` | Accept a join request |
+| POST | `/api/gigs/my-gig/requests/{id}/reject` | Reject a join request |
 
 ### User Profile
-- `GET    /api/users/me`        — My profile (experience, skills, reviews, rating)
-- `PUT    /api/users/me`        — Update experience & skills
-- `GET    /api/users/{userId}`  — Public profile
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/api/users/me` | My profile |
+| PUT | `/api/users/me` | Update experience and skills |
+| GET | `/api/users/{userId}` | View any user's public profile |
 
-### Review System
-- `POST   /api/reviews`           — Add review for a user, one per gig per user
-- `GET    /api/reviews/user/{id}` — Get all reviews for a user (paging supported)
+### Reviews
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/api/reviews` | Submit a review for a gig participant |
+| GET | `/api/reviews/user/{id}` | Get all reviews for a user (paginated) |
 
 ### Chat
-- `GET    /api/chat/{gigId}/history`   — RESTful chat history (paged)
-- `WS     /ws`                         — WebSocket STOMP endpoint (room = gigId)
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/api/chat/{gigId}/history` | Paginated chat history |
+| WS | `wss://sportsconnect-c2po.onrender.com/ws` | STOMP WebSocket endpoint |
 
 ---
 
-## ⚙️ Getting Started
+## ⚙️ Running Locally
 
 ### Prerequisites
-
 - Java 17+
 - Maven
-- MySQL (local or remote)
-- (Optional) Redis for future caching
+- PostgreSQL (local) or use the Render DB URL directly
 
 ### Setup
 
-1. **Clone and configure DB:**
+1. **Clone the repo:**
     ```shell
     git clone https://github.com/anshq31/SportsConnect.git
     cd SportsConnect
-    # edit src/main/resources/application.properties for your MySQL username/password/database
     ```
 
-2. **Run database migrations**  
-    (Schema auto-creates. You may add Flyway/Liquibase in the future for versioned migrations.)
+2. **Create `src/main/resources/application-dev.properties`** (gitignored — not committed):
+    ```properties
+    server.port=8080
+    spring.datasource.url=jdbc:postgresql://localhost:5432/sportsconnect
+    spring.datasource.username=your_username
+    spring.datasource.password=your_password
+    spring.datasource.driver-class-name=org.postgresql.Driver
+    spring.jpa.show-sql=true
+    jwt.secret=your_jwt_secret
+    ```
 
-3. **Build and run:**
+3. **Run:**
     ```shell
     mvn clean install
     mvn spring-boot:run
     ```
-    Server runs on port 8080 by default.
+    Server starts on `http://localhost:8080`
 
 ---
 
-## 🧑‍💻 Development
+## 🐳 Docker
 
-- **Code style**: 100% Java, Clean DTO/entity separation, `com.ansh.sportsconnect` package (see [refactor commit](https://github.com/anshq31/SportsConnect/commit/23123894fcc9db7d62d4b84c05dccb84f14a9321))
-- **Recent improvements**:
-    - Refactored to use package name `com.ansh.sportsconnect`
-    - Removed jargon and commented code for clarity
-    - Sports types in Gigs are now dynamic (not hardcoded)
-    - Gig → Chat links now use gigId instead of groupId
-    - Review system full CRUD (add/view), profile ratings
-    - 401 on invalid refresh tokens, improved session handling
+```dockerfile
+FROM maven:3.9.6-eclipse-temurin-17 AS build
+WORKDIR /app
+COPY pom.xml .
+COPY src ./src
+RUN mvn clean package -DskipTests
+
+FROM eclipse-temurin:17-jre
+WORKDIR /app
+COPY --from=build /app/target/*.jar app.jar
+EXPOSE 10000
+ENTRYPOINT ["java", "-jar", "app.jar"]
+```
+
+Build and run locally:
+```shell
+docker build -t sportsconnect .
+docker run -p 8080:10000 sportsconnect
+```
 
 ---
 
 ## 🔒 Security
 
-- JWT-based authentication on all endpoints (except `/api/auth/**` and `/ws/**`)
-- Passwords: BCrypt hashing, never stored in plaintext
-- All user data endpoints require a valid Bearer token
-- CORS: Origin patterns configurable in security config
-- Rate limiting can be enabled via Spring or proxy/middleware as needed
+- JWT Bearer token required on all endpoints except `/api/auth/**` and `/ws/**`
+- Passwords hashed with BCrypt — never stored in plaintext
+- STOMP WebSocket authenticated via JWT in the `CONNECT` frame header
+- Production secrets managed via Render environment variables — never committed to source
+
+---
+
+## ⏱️ Scheduled Jobs
+
+Two cron jobs run automatically on the deployed server:
+
+| Job | Schedule | Action |
+|---|---|---|
+| `autoCompleteGigs` | Daily at midnight | Marks ACTIVE/FULL gigs past their dateTime as COMPLETED |
+| `autoDeleteCompletedGigs` | Daily at 2am | Hard deletes gigs that have been COMPLETED for 2+ days |
+
+This two-phase approach preserves completed gig data (reviews, history) for a retention window before permanent deletion.
 
 ---
 
@@ -124,40 +181,32 @@ A robust Spring Boot backend (100% Java) for the SportsConnect platform — enab
 src/
  └── main/
      ├── java/com/ansh/sportsconnect/
-     │    ├── config            # Security/websocket/JPA configs
-     │    ├── controller        # All REST endpoints (Auth, Gigs, User, Reviews, Chat, etc)
-     │    ├── dto               # Request/response objects
-     │    ├── model             # Entities
-     │    ├── repository        # Spring Data JPA repositories
-     │    ├── security          # JWT & Security filters
-     │    ├── service           # Business logic & helpers
-     │    └── seeder            # Data seeding (skills etc)
+     │    ├── config         # Security, WebSocket, JPA configs
+     │    ├── controller     # REST + WebSocket controllers
+     │    ├── dto            # Request/response objects
+     │    ├── model          # JPA entities
+     │    ├── repository     # Spring Data JPA repositories
+     │    ├── security       # JWT filter, entry point, service
+     │    ├── service        # Business logic
+     │    └── seeder         # Skill data seeder
      └── resources/
-          └── application.properties
+          ├── application.properties          # Shared config (committed)
+          ├── application-dev.properties      # Local secrets (gitignored)
+          └── application-prod.properties     # Prod env vars (gitignored)
 ```
 
 ---
 
 ## 🧪 Testing
 
-- Unit and integration tests for all core services: see `src/test/`
-- Mocking with Mockito
-- End-to-end test recommendations: Postman collections + Selenium for chat
-
----
-
-## 🖥️ Deployment
-
-- Recommended: Run on Linux (Ubuntu 22+) with Dockerized MySQL
-- `application-prod.properties` for production secrets (not committed)
-- Spring profiles supported for `dev`, `test`, `prod`
+- Unit tests in `src/test/` with JUnit and Mockito
+- API testing recommended via Postman against `https://sportsconnect-c2po.onrender.com`
 
 ---
 
 ## 🙏 Acknowledgements
 
-- Starter seed for skills
-- Open-source libraries: Spring Boot, Lombok, JJWT, Mockito, STOMP, MySQL
-- Inspiration from online sports booking platforms
-
----
+- [Spring Boot](https://spring.io/projects/spring-boot)
+- [JJWT](https://github.com/jwtk/jjwt)
+- [Lombok](https://projectlombok.org)
+- [Render](https://render.com) for hosting
