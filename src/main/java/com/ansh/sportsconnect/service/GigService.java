@@ -316,6 +316,7 @@ public class GigService {
 
         List<Gig> completedGigs = gigRepository.findByStatusInAndDateTimeBefore(List.of(GigStatus.ACTIVE,GigStatus.FULL), LocalDateTime.now());
 
+
         if (completedGigs.isEmpty()){
             return;
         }
@@ -326,18 +327,16 @@ public class GigService {
                 gig.setStatus(GigStatus.COMPLETED);
                 gig.setCompletedAt(LocalDateTime.now());
                 gigRepository.save(gig);
-            }catch (Exception e){
+            }catch (Exception ignored){
 
             }
         }
     }
 
-    @Scheduled(cron = "0 0 2 * * *")
+    @Scheduled(cron = "0 0 0 * * *")
     @Transactional
     public void autoDeleteCompleteGigs(){
         LocalDateTime cuttoff = LocalDateTime.now().minusDays(2);
-
-        System.out.println("CRON 1 RUNNING AT: " + LocalDateTime.now());
 
         List<Gig> gigsToDelete = gigRepository.findByStatusAndCompletedAtBefore(GigStatus.COMPLETED,cuttoff);
 
@@ -350,7 +349,7 @@ public class GigService {
                 gigRequestRepository.deleteByGig(gig);
                 chatService.deleteChatGroupForGig(gig);
                 gigRepository.delete(gig);
-            }catch (Exception e){
+            }catch (Exception ignored){
 
             }
         }

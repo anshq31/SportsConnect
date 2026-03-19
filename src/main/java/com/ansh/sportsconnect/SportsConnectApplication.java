@@ -6,10 +6,10 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
 @EnableScheduling
-public class ConnectionpracticeApplication {
+public class SportsConnectApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(ConnectionpracticeApplication.class, args);
+		SpringApplication.run(SportsConnectApplication.class, args);
 	}
 
 }
