@@ -50,7 +50,7 @@ public class GigService {
         return userRepository.findByUsername(username).orElseThrow(()-> new UsernameNotFoundException("Authenticated user could not be found with username:"+username));
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public GigDto createGig(GigCreateRequest createRequest){
         User user = getAuthenticatedUser();
 
@@ -93,7 +93,7 @@ public class GigService {
 
         Page<Gig> gigPage = gigRepository.findAll(spec,pageable);
 
-        return gigPage.map(this::mapToGigDto);
+        return gigPage.map(gig -> mapToGigDto(gig,user));
     }
 
     @Transactional(readOnly = true)
@@ -117,7 +117,7 @@ public class GigService {
 
         return gigPage.map(this::mapToGigDto);
     }
-
+    @Transactional(readOnly = true)
     public Page<GigDto> getGigUserParticipatedIn(Pageable pageable){
         User user = getAuthenticatedUser();
 
@@ -126,7 +126,7 @@ public class GigService {
 
         Page<Gig> gigPage = gigRepository.findAll(spec,pageable);
 
-        return gigPage.map(this::mapToGigDto);
+        return gigPage.map(gig -> mapToGigDto(gig,user));
     }
 
     public void requestToJoinGig(Long gigId){
