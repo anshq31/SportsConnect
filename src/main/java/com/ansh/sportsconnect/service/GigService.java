@@ -50,7 +50,7 @@ public class GigService {
         return userRepository.findByUsername(username).orElseThrow(()-> new UsernameNotFoundException("Authenticated user could not be found with username:"+username));
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public GigDto createGig(GigCreateRequest createRequest){
         User user = getAuthenticatedUser();
 
