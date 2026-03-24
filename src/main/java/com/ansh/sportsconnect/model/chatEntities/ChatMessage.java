@@ -28,8 +28,8 @@ public class ChatMessage {
     @JoinColumn(name = "sender_id",nullable = false)
     private User sender;
 
-    @Lob
-    @Column(nullable = false)
+
+    @Column(nullable = false,columnDefinition = "TEXT")
     private String content;
 
     @Column(nullable = false)

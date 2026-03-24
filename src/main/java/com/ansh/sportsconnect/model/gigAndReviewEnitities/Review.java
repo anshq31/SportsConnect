@@ -31,6 +31,6 @@ public class Review {
     @Column(nullable = false)
     private Integer rating;
 
-    @Lob
+    @Column(columnDefinition = "TEXT")
     private String comment;
 }

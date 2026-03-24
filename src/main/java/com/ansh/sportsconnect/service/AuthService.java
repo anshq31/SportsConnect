@@ -14,6 +14,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -84,6 +85,7 @@ public class AuthService {
                 .build();
     }
 
+    @Transactional
     public AuthResponse refreshToken(RefreshRequest refreshRequest){
         String requestToken = refreshRequest.getRefreshToken();
         Optional<RefreshToken> optional = refreshTokenService.findByToken(requestToken);
@@ -98,6 +100,10 @@ public class AuthService {
             throw new RuntimeException("Refresh token expired. Please login again ");
         }
 
+        User user = savedToken.getUser();
+        String username = user.getUsername();
+        String email = user.getEmail();
+        Long id = user.getId();
 
         String newAccessToken = jwtService.generateAccessToken(savedToken.getUser().getUsername());
 
@@ -106,9 +112,9 @@ public class AuthService {
         return AuthResponse.builder()
                 .accessToken(newAccessToken)
                 .refreshToken(newRefreshToken.getToken())
-                .id(savedToken.getUser().getId())
-                .username(savedToken.getUser().getUsername())
-                .email(savedToken.getUser().getEmail())
+                .id(id)
+                .username(username)
+                .email(email)
                 .build();
     }
 }

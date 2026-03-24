@@ -32,7 +32,7 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-    @Lob
+    @Column(columnDefinition = "TEXT")
     private String experience;
 
     @Column(precision = 3, scale = 2, columnDefinition = "DECIMAL(3,2) DEFAULT 0.00")
