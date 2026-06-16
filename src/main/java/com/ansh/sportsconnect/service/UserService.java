@@ -66,7 +66,8 @@ public class UserService {
         user.setSkills(skills);
 
         User updatedUser = userRepository.save(user);
-        return mapToUserProfileDto(updatedUser);
+        List<Long> blockedUserIds = userBlockRepository.findBlockedIdsByBlockerId(updatedUser.getId());
+        return mapToUserProfileDto(updatedUser, blockedUserIds);
     }
 
     @Transactional(readOnly = true)
