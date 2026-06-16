@@ -40,9 +40,13 @@ public class UserController {
     }
 
     @GetMapping("/{userId}")
-    public ResponseEntity<UserProfileDto> getUserProfile(@PathVariable Long userId) {
-        UserProfileDto profile = userService.getUserPublicProfile(userId);
-        return ResponseEntity.ok(profile);
+    public ResponseEntity<?> getUserProfile(@PathVariable Long userId) {
+        try {
+            UserProfileDto profile = userService.getUserPublicProfile(userId);
+            return ResponseEntity.ok(profile);
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+        }
     }
 
     @PostMapping("/{userId}/block")

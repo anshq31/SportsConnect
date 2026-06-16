@@ -50,14 +50,22 @@ public class GigController {
     }
 
     @GetMapping("/{gigId}")
-    public ResponseEntity<GigDto> getGigById(@PathVariable Long gigId){
-        return ResponseEntity.ok(gigService.getGigById(gigId));
+    public ResponseEntity<?> getGigById(@PathVariable Long gigId){
+        try {
+            return ResponseEntity.ok(gigService.getGigById(gigId));
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+        }
     }
 
     @PostMapping("/{gigId}/request-join")
     public ResponseEntity<?> requestToJoin(@PathVariable Long gigId){
-        gigService.requestToJoinGig(gigId);
-        return ResponseEntity.ok("Join request sent successfully");
+        try {
+            gigService.requestToJoinGig(gigId);
+            return ResponseEntity.ok("Join request sent successfully");
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+        }
     }
 
     @GetMapping("/my-gig/requests")

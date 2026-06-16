@@ -27,4 +27,16 @@ public interface UserBlockRepository extends JpaRepository<UserBlock, Long> {
     @Transactional
     @Query("DELETE FROM UserBlock ub WHERE ub.blockerId = :userId OR ub.blockedId = :userId")
     void deleteAllInvolvingUser(@Param("userId") Long userId);
+
+    @Query(value = "SELECT EXISTS(SELECT 1 FROM user_blocks WHERE " +
+                   "(blocker_id = :userAId AND blocked_id = :userBId) OR " +
+                   "(blocker_id = :userBId AND blocked_id = :userAId))",
+           nativeQuery = true)
+    boolean existsBlockBetween(@Param("userAId") Long userAId, @Param("userBId") Long userBId);
+
+    @Query(value = "SELECT blocked_id FROM user_blocks WHERE blocker_id = :userId " +
+                   "UNION " +
+                   "SELECT blocker_id FROM user_blocks WHERE blocked_id = :userId",
+           nativeQuery = true)
+    List<Long> findAllBlockedUserIds(@Param("userId") Long userId);
 }

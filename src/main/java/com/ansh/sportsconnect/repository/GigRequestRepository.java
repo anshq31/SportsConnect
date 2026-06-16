@@ -39,4 +39,12 @@ public interface GigRequestRepository extends JpaRepository<GigRequest,Long> {
     @Transactional
     @Query("DELETE FROM GigRequest gr WHERE gr.gig.id IN :gigIds")
     void deleteAllByGigIdIn(@Param("gigIds") List<Long> gigIds);
+
+    @Modifying(clearAutomatically = true)
+    @Transactional
+    @Query(value = "DELETE FROM gig_requests WHERE " +
+                   "(requested_id = :userAId AND gig_id IN (SELECT id FROM gigs WHERE gig_master_id = :userBId)) OR " +
+                   "(requested_id = :userBId AND gig_id IN (SELECT id FROM gigs WHERE gig_master_id = :userAId))",
+           nativeQuery = true)
+    void deleteAllBetweenUsers(@Param("userAId") Long userAId, @Param("userBId") Long userBId);
 }

@@ -16,6 +16,12 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage,Long> {
 
     Page<ChatMessage> findByGroupAndHiddenFalse(ChatGroup group, Pageable pageable);
 
+    @Query("SELECT m FROM ChatMessage m WHERE m.group = :group AND m.hidden = false AND m.sender.id NOT IN :blockedIds")
+    Page<ChatMessage> findByGroupAndHiddenFalseAndSenderNotIn(
+            @Param("group") ChatGroup group,
+            @Param("blockedIds") List<Long> blockedIds,
+            Pageable pageable);
+
     @Transactional
     void deleteByGroup(ChatGroup group);
 

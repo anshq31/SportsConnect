@@ -12,6 +12,7 @@ import com.ansh.sportsconnect.model.userAndAuthEntities.User;
 import com.ansh.sportsconnect.repository.GigRepository;
 import com.ansh.sportsconnect.repository.GigRequestRepository;
 import com.ansh.sportsconnect.repository.ReviewRepository;
+import com.ansh.sportsconnect.repository.UserBlockRepository;
 import com.ansh.sportsconnect.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -44,6 +45,9 @@ public class GigService {
 
     @Autowired
     private ReviewRepository reviewRepository;
+
+    @Autowired
+    private UserBlockRepository userBlockRepository;
 
     private User getAuthenticatedUser(){
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -84,7 +88,12 @@ public class GigService {
 
         Gig gig = gigRepository.findById(gigId)
             .orElseThrow(()-> new RuntimeException("Gig not found with id: " + gigId));
-            return mapToGigDto(gig,user);
+
+        if (userBlockRepository.existsBlockBetween(user.getId(), gig.getGigMaster().getId())) {
+            throw new SecurityException("Access denied");
+        }
+
+        return mapToGigDto(gig, user);
     }
 
     @Transactional(readOnly = true)
@@ -114,12 +123,18 @@ public class GigService {
             return gigRepository.findAll(byIds, pageable).map(this::mapToGigDto);
         }
 
+        List<Long> blockedUserIds = userBlockRepository.findAllBlockedUserIds(user.getId());
+
         Specification<Gig> spec = Specification.where(GigSpecificationService.hasStatus(GigStatus.ACTIVE))
                 .and(GigSpecificationService.notCreatedBy(user.getUsername()))
                 .and(GigSpecificationService.userNotParticipant(user.getUsername()));
 
         if (sport != null && !sport.isEmpty()) {
             spec = spec.and(GigSpecificationService.hasSport(sport));
+        }
+
+        if (!blockedUserIds.isEmpty()) {
+            spec = spec.and(GigSpecificationService.gigMasterNotIn(blockedUserIds));
         }
 
         return gigRepository.findAll(spec, pageable).map(this::mapToGigDto);
@@ -146,6 +161,10 @@ public class GigService {
 
         if (gig.getGigMaster().getUsername().equals(requester.getUsername())){
             throw  new RuntimeException("You cannot join your own gig");
+        }
+
+        if (userBlockRepository.existsBlockBetween(requester.getId(), gig.getGigMaster().getId())) {
+            throw new SecurityException("Cannot join this gig");
         }
 
         boolean isAlreadyParticipant = gig.getAcceptedParticipants().stream().anyMatch(u-> u.getUsername().equals(requester.getUsername()));

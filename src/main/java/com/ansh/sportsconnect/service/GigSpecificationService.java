@@ -4,6 +4,7 @@ import com.ansh.sportsconnect.model.enums.GigStatus;
 import com.ansh.sportsconnect.model.gigAndReviewEnitities.Gig;
 import com.ansh.sportsconnect.model.userAndAuthEntities.User;
 import jakarta.persistence.criteria.Join;
+import java.util.List;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Root;
 import jakarta.persistence.criteria.Subquery;
@@ -54,6 +55,10 @@ public  class GigSpecificationService {
 
             return criteriaBuilder.equal(gigMaster.get("username"),username);
         };
+    }
+
+    public static Specification<Gig> gigMasterNotIn(List<Long> userIds) {
+        return (root, query, cb) -> cb.not(root.get("gigMaster").get("id").in(userIds));
     }
 
     public static Specification<Gig> userNotParticipant(String username){

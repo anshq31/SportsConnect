@@ -71,6 +71,12 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public UserProfileDto getUserPublicProfile(Long userId) {
+        User currentUser = getAuthenticatedUser();
+
+        if (userBlockRepository.existsBlockBetween(currentUser.getId(), userId)) {
+            throw new SecurityException("Profile not available");
+        }
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found with id" + userId));
         return mapToUserProfileDto(user);

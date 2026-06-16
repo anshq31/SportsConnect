@@ -31,4 +31,14 @@ public interface ChatGroupRepository extends JpaRepository<ChatGroup,Long> {
     @Transactional
     @Query(value = "DELETE FROM chat_group_members WHERE user_id = :userId", nativeQuery = true)
     void removeUserFromAllGroups(@Param("userId") Long userId);
+
+    @Modifying(clearAutomatically = true)
+    @Transactional
+    @Query(value = "DELETE FROM chat_group_members WHERE user_id = :targetUserId " +
+                   "AND chat_group_id IN (" +
+                   "  SELECT cg.id FROM chat_groups cg " +
+                   "  WHERE cg.gig_id IN (SELECT g.id FROM gigs g WHERE g.gig_master_id = :ownerId)" +
+                   ")",
+           nativeQuery = true)
+    void removeUserFromOwnerGigChats(@Param("ownerId") Long ownerId, @Param("targetUserId") Long targetUserId);
 }

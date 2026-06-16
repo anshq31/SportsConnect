@@ -8,6 +8,7 @@ import com.ansh.sportsconnect.model.userAndAuthEntities.User;
 import com.ansh.sportsconnect.repository.ChatGroupRepository;
 import com.ansh.sportsconnect.repository.ChatMessageRepository;
 import com.ansh.sportsconnect.repository.GigRepository;
+import com.ansh.sportsconnect.repository.UserBlockRepository;
 import com.ansh.sportsconnect.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -16,7 +17,10 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.security.core.context.SecurityContextHolder;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -33,6 +37,9 @@ public class ChatService {
 
     @Autowired
     private GigRepository gigRepository;
+
+    @Autowired
+    private UserBlockRepository userBlockRepository;
 
     @Transactional
     public void addMemberToGigChat(Gig gig, User newMember){
@@ -72,13 +79,27 @@ public class ChatService {
 
     @Transactional(readOnly = true)
     public Page<ChatMessageDto> getChatHistory(Long gigId, Pageable pageable){
-
         Optional<ChatGroup> group = resolveChatGroup(gigId, false);
         if (group.isEmpty()) {
             return Page.empty(pageable);
         }
 
-        Page<ChatMessage> messages = chatMessageRepository.findByGroupAndHiddenFalse(group.get(), pageable);
+        List<Long> blockedUserIds = Collections.emptyList();
+        try {
+            String username = SecurityContextHolder.getContext().getAuthentication().getName();
+            User currentUser = userRepository.findByUsername(username).orElse(null);
+            if (currentUser != null) {
+                blockedUserIds = userBlockRepository.findAllBlockedUserIds(currentUser.getId());
+            }
+        } catch (Exception ignored) {}
+
+        Page<ChatMessage> messages;
+        if (blockedUserIds.isEmpty()) {
+            messages = chatMessageRepository.findByGroupAndHiddenFalse(group.get(), pageable);
+        } else {
+            messages = chatMessageRepository.findByGroupAndHiddenFalseAndSenderNotIn(group.get(), blockedUserIds, pageable);
+        }
+
         return messages.map(this::mapToChatMessageDto);
     }
 

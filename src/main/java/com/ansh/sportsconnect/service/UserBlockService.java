@@ -3,6 +3,9 @@ package com.ansh.sportsconnect.service;
 import com.ansh.sportsconnect.dto.UserBlockDto;
 import com.ansh.sportsconnect.model.blockEntities.UserBlock;
 import com.ansh.sportsconnect.model.userAndAuthEntities.User;
+import com.ansh.sportsconnect.repository.ChatGroupRepository;
+import com.ansh.sportsconnect.repository.GigRepository;
+import com.ansh.sportsconnect.repository.GigRequestRepository;
 import com.ansh.sportsconnect.repository.UserBlockRepository;
 import com.ansh.sportsconnect.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +22,15 @@ public class UserBlockService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private GigRepository gigRepository;
+
+    @Autowired
+    private ChatGroupRepository chatGroupRepository;
+
+    @Autowired
+    private GigRequestRepository gigRequestRepository;
 
     private User getAuthenticatedUser() {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -47,6 +59,15 @@ public class UserBlockService {
                 .blockedId(blockedId)
                 .build();
         UserBlock saved = userBlockRepository.save(block);
+
+        // Remove blockedUser from blocker's gigs and vice versa
+        gigRepository.removeUserFromOwnerGigs(blocker.getId(), blockedId);
+        chatGroupRepository.removeUserFromOwnerGigChats(blocker.getId(), blockedId);
+        gigRepository.removeUserFromOwnerGigs(blockedId, blocker.getId());
+        chatGroupRepository.removeUserFromOwnerGigChats(blockedId, blocker.getId());
+
+        // Cancel all pending join requests between the two users
+        gigRequestRepository.deleteAllBetweenUsers(blocker.getId(), blockedId);
 
         return mapToDto(saved);
     }
