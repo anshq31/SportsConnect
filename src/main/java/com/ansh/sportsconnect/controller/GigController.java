@@ -27,8 +27,13 @@ public class GigController {
     }
 
     @GetMapping("/active")
-    public ResponseEntity<Page<GigDto>> getActiveGigs(@RequestParam(required = false) String sport, @RequestParam(required = false) String location,@PageableDefault(size = 10,sort = "dateTime")Pageable pageable){
-        Page<GigDto> gigs = gigService.getAllActiveGigs(sport, location, pageable);
+    public ResponseEntity<Page<GigDto>> getActiveGigs(
+            @RequestParam(required = false) String sport,
+            @RequestParam(required = false) Double lat,
+            @RequestParam(required = false) Double lng,
+            @RequestParam(required = false) Double radiusKm,
+            @PageableDefault(size = 10, sort = "dateTime") Pageable pageable) {
+        Page<GigDto> gigs = gigService.getAllActiveGigs(sport, lat, lng, radiusKm, pageable);
         return ResponseEntity.ok(gigs);
     }
 

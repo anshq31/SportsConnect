@@ -39,6 +39,12 @@ public class Gig {
     private Integer playersNeeded;
 
     @Column
+    private Double latitude;
+
+    @Column
+    private Double longitude;
+
+    @Column
     private LocalDateTime completedAt;
 
     @Enumerated(EnumType.STRING)

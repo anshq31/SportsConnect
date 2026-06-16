@@ -65,6 +65,8 @@ public class GigService {
                 .gigMaster(user)
                 .sport(createRequest.getSport().toLowerCase())
                 .location(createRequest.getLocation())
+                .latitude(createRequest.getLatitude())
+                .longitude(createRequest.getLongitude())
                 .dateTime(createRequest.getDateTime())
                 .playersNeeded(createRequest.getPlayersNeeded())
                 .status(GigStatus.ACTIVE)
@@ -97,9 +99,20 @@ public class GigService {
     }
 
     @Transactional(readOnly = true)
-    public Page<GigDto> getAllActiveGigs(String sport, String location,Pageable pageable){
+    public Page<GigDto> getAllActiveGigs(String sport, Double lat, Double lng, Double radiusKm, Pageable pageable){
 
         User user = getAuthenticatedUser();
+
+        if (lat != null && lng != null && radiusKm != null) {
+            String sportParam = (sport != null && !sport.isEmpty())
+                    ? "%" + sport.toLowerCase() + "%" : null;
+
+            List<Long> ids = gigRepository.findGigIdsWithinRadius(user.getId(), sportParam, lat, lng, radiusKm);
+            if (ids.isEmpty()) return Page.empty(pageable);
+
+            Specification<Gig> byIds = (root, query, cb) -> root.get("id").in(ids);
+            return gigRepository.findAll(byIds, pageable).map(this::mapToGigDto);
+        }
 
         Specification<Gig> spec = Specification.where(GigSpecificationService.hasStatus(GigStatus.ACTIVE))
                 .and(GigSpecificationService.notCreatedBy(user.getUsername()))
@@ -109,13 +122,7 @@ public class GigService {
             spec = spec.and(GigSpecificationService.hasSport(sport));
         }
 
-        if (location != null && !location.isEmpty()){
-            spec = spec.and(GigSpecificationService.hasLocation(location));
-        }
-
-        Page<Gig> gigPage = gigRepository.findAll(spec,pageable);
-
-        return gigPage.map(this::mapToGigDto);
+        return gigRepository.findAll(spec, pageable).map(this::mapToGigDto);
     }
     @Transactional(readOnly = true)
     public Page<GigDto> getGigUserParticipatedIn(Pageable pageable){
@@ -273,6 +280,8 @@ public class GigService {
                 .id(gig.getId())
                 .sport(gig.getSport())
                 .location(gig.getLocation())
+                .latitude(gig.getLatitude())
+                .longitude(gig.getLongitude())
                 .dateTime(gig.getDateTime())
                 .playersNeeded(gig.getPlayersNeeded())
                 .status(gig.getStatus().name())

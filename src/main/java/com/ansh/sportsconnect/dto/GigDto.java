@@ -17,6 +17,8 @@ public class GigDto {
     private Long id;
     private String sport;
     private String location;
+    private Double latitude;
+    private Double longitude;
     private LocalDateTime dateTime;
     private Integer playersNeeded;
     private String status;
