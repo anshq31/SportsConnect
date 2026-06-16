@@ -311,34 +311,30 @@ public class GigService {
 
     @Scheduled(cron = "0 0 0 * * *")
     @Transactional
-    public void autoCompleteGigs(){
+    public void autoExpireGigs(){
+        List<Gig> pastGigs = gigRepository.findByStatusInAndDateTimeBefore(List.of(GigStatus.ACTIVE, GigStatus.FULL), LocalDateTime.now());
 
-
-        List<Gig> completedGigs = gigRepository.findByStatusInAndDateTimeBefore(List.of(GigStatus.ACTIVE,GigStatus.FULL), LocalDateTime.now());
-
-
-        if (completedGigs.isEmpty()){
+        if (pastGigs.isEmpty()){
             return;
         }
 
-
-        for (Gig gig : completedGigs){
+        LocalDateTime now = LocalDateTime.now();
+        for (Gig gig : pastGigs){
             try {
-                gig.setStatus(GigStatus.COMPLETED);
-                gig.setCompletedAt(LocalDateTime.now());
+                gig.setStatus(gig.getStatus() == GigStatus.FULL ? GigStatus.COMPLETED : GigStatus.EXPIRED);
+                gig.setCompletedAt(now);
                 gigRepository.save(gig);
             }catch (Exception ignored){
-
             }
         }
     }
 
-    @Scheduled(cron = "0 0 0 * * *")
+    @Scheduled(cron = "0 5 0 * * *")
     @Transactional
-    public void autoDeleteCompleteGigs(){
-        LocalDateTime cuttoff = LocalDateTime.now().minusDays(2);
+    public void autoDeleteStaleGigs(){
+        LocalDateTime cutoff = LocalDateTime.now().minusDays(2);
 
-        List<Gig> gigsToDelete = gigRepository.findByStatusAndCompletedAtBefore(GigStatus.COMPLETED,cuttoff);
+        List<Gig> gigsToDelete = gigRepository.findByStatusInAndCompletedAtBefore(List.of(GigStatus.COMPLETED, GigStatus.EXPIRED), cutoff);
 
         if (gigsToDelete.isEmpty()){
             return;
@@ -350,7 +346,6 @@ public class GigService {
                 chatService.deleteChatGroupForGig(gig);
                 gigRepository.delete(gig);
             }catch (Exception ignored){
-
             }
         }
     }

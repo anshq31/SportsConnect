@@ -18,5 +18,5 @@ public interface GigRepository extends JpaRepository<Gig,Long>,JpaSpecificationE
     Optional<Gig> findByGigMasterAndStatusIn(User gigMaster, List<GigStatus> statuses);
     List<Gig>  findByStatusInAndDateTimeBefore(List<GigStatus> statuses, LocalDateTime dateTime);
 
-    List<Gig> findByStatusAndCompletedAtBefore(GigStatus status, LocalDateTime cutoff);
+    List<Gig> findByStatusInAndCompletedAtBefore(List<GigStatus> statuses, LocalDateTime cutoff);
 }

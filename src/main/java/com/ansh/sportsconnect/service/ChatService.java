@@ -83,8 +83,7 @@ public class ChatService {
     }
 
     private Optional<ChatGroup> resolveChatGroup(Long gigId, boolean createIfMissing){
-        Optional<ChatGroup> existingGroup = chatGroupRepository.findById(gigId)
-                .or(()-> chatGroupRepository.findByGigId(gigId));
+        Optional<ChatGroup> existingGroup = chatGroupRepository.findByGigId(gigId);
 
         if (existingGroup.isPresent() || !createIfMissing){
             return existingGroup;
