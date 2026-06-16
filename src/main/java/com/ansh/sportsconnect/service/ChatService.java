@@ -78,7 +78,7 @@ public class ChatService {
             return Page.empty(pageable);
         }
 
-        Page<ChatMessage> messages = chatMessageRepository.findByGroup(group.get(),pageable);
+        Page<ChatMessage> messages = chatMessageRepository.findByGroupAndHiddenFalse(group.get(), pageable);
         return messages.map(this::mapToChatMessageDto);
     }
 
@@ -110,6 +110,7 @@ public class ChatService {
     private ChatMessageDto mapToChatMessageDto(ChatMessage message){
         return ChatMessageDto.builder()
                 .id(message.getId().toString())
+                .senderId(message.getSender().getId())
                 .senderUsername(message.getSender().getUsername())
                 .content(message.getContent())
                 .timeStamp(message.getTimeStamp())

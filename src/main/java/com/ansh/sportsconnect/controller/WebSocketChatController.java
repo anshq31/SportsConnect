@@ -40,6 +40,7 @@ public class WebSocketChatController {
 
         ChatMessageDto broadcastDto = ChatMessageDto.builder()
                 .id(savedMessage.getId().toString())
+                .senderId(savedMessage.getSender().getId())
                 .senderUsername(savedMessage.getSender().getUsername())
                 .content(savedMessage.getContent())
                 .timeStamp(savedMessage.getTimeStamp())

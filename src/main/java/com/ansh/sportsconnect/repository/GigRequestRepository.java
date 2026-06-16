@@ -7,9 +7,13 @@ import com.ansh.sportsconnect.model.userAndAuthEntities.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -25,4 +29,14 @@ public interface GigRequestRepository extends JpaRepository<GigRequest,Long> {
             User requester,
             RequestStatus status
     );
+
+    @Modifying(clearAutomatically = true)
+    @Transactional
+    @Query("DELETE FROM GigRequest gr WHERE gr.requester.id = :userId")
+    void deleteAllByRequesterId(@Param("userId") Long userId);
+
+    @Modifying(clearAutomatically = true)
+    @Transactional
+    @Query("DELETE FROM GigRequest gr WHERE gr.gig.id IN :gigIds")
+    void deleteAllByGigIdIn(@Param("gigIds") List<Long> gigIds);
 }

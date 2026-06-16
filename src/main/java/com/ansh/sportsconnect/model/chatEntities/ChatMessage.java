@@ -35,6 +35,10 @@ public class ChatMessage {
     @Column(nullable = false)
     private LocalDateTime timeStamp;
 
+    @Builder.Default
+    @Column(nullable = false)
+    private boolean hidden = false;
+
     @PrePersist
     protected void onCreate(){
         this.timeStamp = LocalDateTime.now();
