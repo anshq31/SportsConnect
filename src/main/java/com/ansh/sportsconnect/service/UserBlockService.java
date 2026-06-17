@@ -50,6 +50,10 @@ public class UserBlockService {
             throw new RuntimeException("User not found with id: " + blockedId);
         }
 
+        if (!gigRepository.existsGigOwnerParticipantRelationship(blocker.getId(), blockedId)) {
+            throw new IllegalArgumentException("You can only block someone you share a gig with as owner or participant");
+        }
+
         if (userBlockRepository.existsByBlockerIdAndBlockedId(blocker.getId(), blockedId)) {
             throw new IllegalStateException("User is already blocked");
         }

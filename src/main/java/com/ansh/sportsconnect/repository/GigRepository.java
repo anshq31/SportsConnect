@@ -28,6 +28,22 @@ public interface GigRepository extends JpaRepository<Gig,Long>,JpaSpecificationE
     List<Long> findIdsByGigMasterId(@Param("userId") Long userId);
 
     @Query(value =
+        "SELECT EXISTS (" +
+        "  SELECT 1 FROM gig_participants gp " +
+        "  JOIN gigs g ON gp.gig_id = g.id " +
+        "  WHERE g.status IN ('ACTIVE', 'FULL') " +
+        "  AND (" +
+        "    (g.gig_master_id = :userAId AND gp.user_id = :userBId) " +
+        "    OR (g.gig_master_id = :userBId AND gp.user_id = :userAId)" +
+        "  )" +
+        ")",
+        nativeQuery = true)
+    boolean existsGigOwnerParticipantRelationship(
+        @Param("userAId") Long userAId,
+        @Param("userBId") Long userBId
+    );
+
+    @Query(value =
         "SELECT g.id FROM gigs g " +
         "WHERE g.status = 'ACTIVE' " +
         "AND g.gig_master_id != :userId " +
